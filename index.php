@@ -9,7 +9,7 @@ $files = list_dxf_files();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXF Viewer Template</title>
+    <title>DXF Viewer</title>
 
     <link rel="stylesheet" href="assets/dxf-viewer.css">
 
