@@ -109,7 +109,7 @@ $files = list_dxf_files();
 
 <body>
     <div class="wrap">
-        <h1>DXF Viewer Template</h1>
+        <h1>DXF Viewer</h1>
         <p class="lede">Drop <code>.dxf</code> files into <code>files/</code> and they show up here. View opens them on
             a canvas, nothing is downloaded.</p>
 
