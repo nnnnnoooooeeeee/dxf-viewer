@@ -1,0 +1,224 @@
+.dxfv-overlay {
+    --dxfv-line: #e2e8f0;
+    --dxfv-muted: #64748b;
+    --dxfv-ink: #1e293b;
+    --dxfv-accent: #0284c7;
+    --dxfv-bar: #f8fafc;
+    --dxfv-radius: 14px;
+
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, .55);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.dxfv-overlay.is-open {
+    display: flex;
+}
+
+.dxfv-overlay *,
+.dxfv-overlay *::before,
+.dxfv-overlay *::after {
+    box-sizing: border-box;
+}
+
+body.dxfv-lock {
+    overflow: hidden;
+}
+
+.dxfv-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1140px;
+    max-height: 100%;
+    background: #fff;
+    color: var(--dxfv-ink);
+    border-radius: var(--dxfv-radius);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .35);
+}
+
+.dxfv-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--dxfv-line);
+    background: #f1f5f9;
+}
+
+.dxfv-titles {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-right: auto;
+}
+
+.dxfv-titles strong {
+    font-size: .95rem;
+    font-weight: 600;
+}
+
+.dxfv-name {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: .75rem;
+    color: var(--dxfv-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dxfv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .2rem .6rem;
+    border: 1px solid var(--dxfv-line);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--dxfv-ink);
+    font: inherit;
+    font-size: .78rem;
+    line-height: 1.6;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dxfv-btn:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: var(--dxfv-accent);
+}
+
+.dxfv-x {
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: .1rem .5rem;
+}
+
+.dxfv-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--dxfv-line);
+    background: var(--dxfv-bar);
+}
+
+.dxfv-bar .dxfv-btn {
+    padding: .15rem .5rem;
+    font-size: .72rem;
+}
+
+.dxfv-meta {
+    font-size: .7rem;
+    color: var(--dxfv-muted);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.dxfv-stats {
+    margin-left: 8px;
+}
+
+.dxfv-cursor {
+    margin-left: auto;
+}
+
+.dxfv-stage {
+    position: relative;
+    height: 64vh;
+    min-height: 320px;
+    background: #fff;
+}
+
+.dxfv-stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: none;
+}
+
+.dxfv-stage canvas.dragging {
+    cursor: grabbing;
+}
+
+.dxfv-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    text-align: center;
+    font-size: .82rem;
+    color: var(--dxfv-muted);
+    pointer-events: none;
+}
+
+.dxfv-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--dxfv-line);
+    max-height: 84px;
+    overflow-y: auto;
+}
+
+.dxfv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--dxfv-line);
+    background: #fff;
+    color: #475569;
+    font: inherit;
+    font-size: .68rem;
+    font-weight: 600;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.dxfv-chip:hover {
+    border-color: #bfdbfe;
+}
+
+.dxfv-chip.off {
+    opacity: .45;
+    text-decoration: line-through;
+}
+
+.dxfv-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+
+@media (max-width:576px) {
+    .dxfv-overlay {
+        padding: 0;
+    }
+
+    .dxfv-panel {
+        max-height: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .dxfv-stage {
+        height: auto;
+        flex: 1;
+    }
+}
