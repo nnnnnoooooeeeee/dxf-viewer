@@ -1,10 +1,13 @@
 .dxfv-overlay {
-    --dxfv-line: #e2e8f0;
-    --dxfv-muted: #64748b;
-    --dxfv-ink: #1e293b;
-    --dxfv-accent: #0284c7;
-    --dxfv-bar: #f8fafc;
-    --dxfv-radius: 14px;
+    --dxfv-bg: #000000;
+    --dxfv-fg: #ffffff;
+    --dxfv-border: #ffffff;
+    --dxfv-muted: #9a9a9a;
+    --dxfv-panel: #0a0a0a;
+    --dxfv-chip: #111111;
+    --dxfv-line: #1d1d1d;
+    --dxfv-danger: #ff4444;
+    --dxfv-gap: 12px;
 
     position: fixed;
     inset: 0;
@@ -12,9 +15,9 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 16px;
-    background: rgba(15, 23, 42, .55);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 14px;
+    background: rgba(0, 0, 0, .82);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .dxfv-overlay.is-open {
@@ -31,114 +34,75 @@ body.dxfv-lock {
     overflow: hidden;
 }
 
-.dxfv-panel {
+/* ---------- shell ---------- */
+
+.dxfv-modal {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 1140px;
-    max-height: 100%;
-    background: #fff;
-    color: var(--dxfv-ink);
-    border-radius: var(--dxfv-radius);
+    height: 100%;
+    max-width: 1240px;
+    background: var(--dxfv-bg);
+    color: var(--dxfv-fg);
+    border: 5px solid var(--dxfv-border);
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(15, 23, 42, .35);
 }
 
 .dxfv-head {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--dxfv-line);
-    background: #f1f5f9;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-bottom: 5px solid var(--dxfv-border);
 }
 
 .dxfv-titles {
     display: flex;
     flex-direction: column;
+    gap: 2px;
     min-width: 0;
     margin-right: auto;
 }
 
 .dxfv-titles strong {
-    font-size: .95rem;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 .dxfv-name {
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: .75rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
     color: var(--dxfv-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.dxfv-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: .2rem .6rem;
-    border: 1px solid var(--dxfv-line);
-    border-radius: 7px;
-    background: #fff;
-    color: var(--dxfv-ink);
-    font: inherit;
-    font-size: .78rem;
-    line-height: 1.6;
-    text-decoration: none;
-    cursor: pointer;
+.dxfv-workspace {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--dxfv-gap);
+    padding: var(--dxfv-gap);
 }
 
-.dxfv-btn:hover {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: var(--dxfv-accent);
-}
+/* ---------- canvas ---------- */
 
-.dxfv-x {
-    font-size: 1.15rem;
-    line-height: 1;
-    padding: .1rem .5rem;
-}
-
-.dxfv-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding: 7px 12px;
-    border-bottom: 1px solid var(--dxfv-line);
-    background: var(--dxfv-bar);
-}
-
-.dxfv-bar .dxfv-btn {
-    padding: .15rem .5rem;
-    font-size: .72rem;
-}
-
-.dxfv-meta {
-    font-size: .7rem;
-    color: var(--dxfv-muted);
-    font-family: ui-monospace, SFMono-Regular, monospace;
-}
-
-.dxfv-stats {
-    margin-left: 8px;
-}
-
-.dxfv-cursor {
-    margin-left: auto;
-}
-
-.dxfv-stage {
+.dxfv-canvas-wrap {
     position: relative;
-    height: 64vh;
-    min-height: 320px;
-    background: #fff;
+    min-width: 0;
+    min-height: 0;
+    border: 3px solid var(--dxfv-border);
+    background: var(--dxfv-bg);
+    overflow: hidden;
 }
 
-.dxfv-stage canvas {
+.dxfv-canvas-wrap canvas {
     display: block;
     width: 100%;
     height: 100%;
@@ -146,79 +110,323 @@ body.dxfv-lock {
     touch-action: none;
 }
 
-.dxfv-stage canvas.dragging {
+.dxfv-canvas-wrap canvas.dragging {
     cursor: grabbing;
+}
+
+.dxfv-toolbar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .dxfv-msg {
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 24px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: calc(100% - 48px);
+    padding: 8px 12px;
+    border: 5px dashed var(--dxfv-muted);
     text-align: center;
-    font-size: .82rem;
+    font-size: 14px;
     color: var(--dxfv-muted);
     pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.dxfv-msg.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.dxfv-canvas-wrap:fullscreen,
+.dxfv-canvas-wrap:-webkit-full-screen {
+    border: none;
+    width: 100vw;
+    height: 100vh;
+    background: var(--dxfv-bg);
+}
+
+/* ---------- side panel ---------- */
+
+.dxfv-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    min-height: 0;
+    padding: 14px;
+    border: 3px solid var(--dxfv-border);
+    background: var(--dxfv-panel);
+    overflow-y: auto;
+}
+
+.dxfv-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--dxfv-line);
+}
+
+.dxfv-group:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.dxfv-layers {
+    min-height: 0;
+}
+
+.dxfv-label,
+.dxfv-field span {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dxfv-muted);
+}
+
+.dxfv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dxfv-field output {
+    color: var(--dxfv-fg);
+    font-weight: 600;
+}
+
+.dxfv-zoom-range {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #2a2a2a;
+    outline: none;
+    cursor: pointer;
+}
+
+.dxfv-zoom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--dxfv-fg);
+    border: 1px solid var(--dxfv-fg);
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.dxfv-zoom-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--dxfv-fg);
+    border: 1px solid var(--dxfv-fg);
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.dxfv-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dxfv-check input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 1px solid var(--dxfv-border);
+    background: #000;
+    cursor: pointer;
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.dxfv-check input:checked {
+    background: var(--dxfv-fg);
+}
+
+.dxfv-check input:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0;
+    width: 5px;
+    height: 10px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 .dxfv-legend {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    padding: 8px 12px;
-    border-top: 1px solid var(--dxfv-line);
-    max-height: 84px;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    max-height: 210px;
     overflow-y: auto;
 }
 
-.dxfv-chip {
+.dxfv-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.dxfv-foot {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--dxfv-line);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dxfv-meta {
+    font-size: 10px;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    color: var(--dxfv-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+/* ---------- buttons ---------- */
+
+.dxfv-btn,
+.dxfv-chip,
+.dxfv-layer {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 2px 9px;
-    border-radius: 999px;
-    border: 1px solid var(--dxfv-line);
-    background: #fff;
-    color: #475569;
-    font: inherit;
-    font-size: .68rem;
-    font-weight: 600;
-    line-height: 1.6;
+    justify-content: center;
+    background: var(--dxfv-chip);
+    color: var(--dxfv-fg);
+    border: 3px solid var(--dxfv-border);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
     cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
-.dxfv-chip:hover {
-    border-color: #bfdbfe;
+.dxfv-btn {
+    padding: 6px 12px;
 }
 
-.dxfv-chip.off {
-    opacity: .45;
+.dxfv-chip {
+    padding: 6px 10px;
+    font-size: 10px;
+}
+
+.dxfv-btn:hover,
+.dxfv-chip:hover,
+.dxfv-layer:hover {
+    background: #1a1a1a;
+}
+
+.dxfv-btn:active,
+.dxfv-chip:active {
+    background: var(--dxfv-fg);
+    color: #000;
+}
+
+.dxfv-x {
+    font-size: 16px;
+    line-height: 1;
+    padding: 5px 10px;
+}
+
+.dxfv-x:hover {
+    background: var(--dxfv-danger);
+    border-color: var(--dxfv-danger);
+    color: #fff;
+}
+
+.dxfv-layer {
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 9px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.dxfv-layer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dxfv-layer.off {
+    opacity: .4;
+    border-color: var(--dxfv-muted);
+    color: var(--dxfv-muted);
     text-decoration: line-through;
 }
 
 .dxfv-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 0;
     flex: 0 0 auto;
     pointer-events: none;
 }
 
-@media (max-width:576px) {
+/* ---------- responsive ---------- */
+
+@media (max-width: 880px) {
+    .dxfv-workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) auto;
+    }
+
+    .dxfv-side {
+        max-height: 40vh;
+    }
+
+    .dxfv-legend {
+        flex-direction: row;
+        flex-wrap: wrap;
+        max-height: 92px;
+    }
+
+    .dxfv-foot {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 576px) {
     .dxfv-overlay {
         padding: 0;
+        --dxfv-gap: 8px;
     }
 
-    .dxfv-panel {
-        max-height: 100%;
-        height: 100%;
-        border-radius: 0;
+    .dxfv-modal {
+        border: none;
     }
 
-    .dxfv-stage {
-        height: auto;
-        flex: 1;
+    .dxfv-head {
+        padding: 10px;
+        border-bottom-width: 3px;
+    }
+
+    .dxfv-cursor {
+        display: none;
     }
 }

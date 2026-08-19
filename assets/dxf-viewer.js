@@ -1,13 +1,13 @@
 (function (global) {
     'use strict';
 
-    var PALETTE = ['#0284c7', '#db2777', '#059669', '#d97706', '#7c3aed', '#ea580c', '#0891b2', '#dc2626', '#4d7c0f', '#475569'];
+    var PALETTE = ['#ffffff', '#38bdf8', '#f472b6', '#4ade80', '#fbbf24', '#a78bfa', '#fb923c', '#22d3ee', '#f87171', '#94a3b8'];
 
     var v = {
         root: null, els: null, cv: null, ctx: null, w: 0, h: 0,
         data: null, byLayer: null, hidden: {}, showText: true,
         textH: 1,
-        scale: 1, ox: 0, oy: 0,
+        scale: 1, ox: 0, oy: 0, fitScale: 1,
         drag: null, pending: false
     };
 
@@ -21,7 +21,11 @@
 
     function msg(text) {
         v.els.msg.textContent = text || '';
-        v.els.msg.style.display = text ? 'flex' : 'none';
+        v.els.msg.classList.toggle('hide', !text);
+    }
+
+    function fullEl() {
+        return document.fullscreenElement || document.webkitFullscreenElement || null;
     }
 
     function ensureDom() {
@@ -30,28 +34,50 @@
         var root = document.createElement('div');
         root.className = 'dxfv-overlay';
         root.innerHTML =
-            '<div class="dxfv-panel" role="dialog" aria-modal="true" aria-label="DXF preview">' +
-            '<div class="dxfv-head">' +
+            '<div class="dxfv-modal" role="dialog" aria-modal="true" aria-label="DXF preview">' +
+            '<header class="dxfv-head">' +
             '<div class="dxfv-titles">' +
             '<strong>DXF Preview</strong>' +
             '<span class="dxfv-name"></span>' +
             '</div>' +
             '<a class="dxfv-btn dxfv-download" href="#">Download</a>' +
             '<button type="button" class="dxfv-btn dxfv-x" aria-label="Close">&times;</button>' +
-            '</div>' +
-            '<div class="dxfv-bar">' +
-            '<button type="button" class="dxfv-btn" data-act="fit">Fit</button>' +
-            '<button type="button" class="dxfv-btn" data-act="in">+</button>' +
-            '<button type="button" class="dxfv-btn" data-act="out">−</button>' +
-            '<button type="button" class="dxfv-btn" data-act="text">Hide text</button>' +
-            '<span class="dxfv-meta dxfv-stats"></span>' +
-            '<span class="dxfv-meta dxfv-cursor"></span>' +
-            '</div>' +
-            '<div class="dxfv-stage">' +
+            '</header>' +
+            '<div class="dxfv-workspace">' +
+            '<div class="dxfv-canvas-wrap">' +
             '<canvas></canvas>' +
+            '<div class="dxfv-toolbar">' +
+            '<button type="button" class="dxfv-chip" data-act="fit">Fit</button>' +
+            '<button type="button" class="dxfv-chip" data-act="in">+</button>' +
+            '<button type="button" class="dxfv-chip" data-act="out">−</button>' +
+            '<button type="button" class="dxfv-chip dxfv-full" data-act="full">Full</button>' +
+            '</div>' +
             '<div class="dxfv-msg">Loading…</div>' +
             '</div>' +
+            '<aside class="dxfv-side">' +
+            '<div class="dxfv-group">' +
+            '<label class="dxfv-field">' +
+            '<span>Zoom <output class="dxfv-zoom">100%</output></span>' +
+            '<input type="range" class="dxfv-zoom-range" min="0" max="100" step="0.1" value="50">' +
+            '</label>' +
+            '<label class="dxfv-check">' +
+            '<input type="checkbox" class="dxfv-text-chk" checked><span>Show text</span>' +
+            '</label>' +
+            '</div>' +
+            '<div class="dxfv-group dxfv-layers">' +
+            '<span class="dxfv-label">Layers</span>' +
             '<div class="dxfv-legend"></div>' +
+            '<div class="dxfv-actions">' +
+            '<button type="button" class="dxfv-chip" data-act="all">Show all</button>' +
+            '<button type="button" class="dxfv-chip" data-act="none">Hide all</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="dxfv-foot">' +
+            '<div class="dxfv-meta dxfv-stats"></div>' +
+            '<div class="dxfv-meta dxfv-cursor"></div>' +
+            '</div>' +
+            '</aside>' +
+            '</div>' +
             '</div>';
         document.body.appendChild(root);
 
@@ -59,7 +85,11 @@
         v.els = {
             name: root.querySelector('.dxfv-name'),
             download: root.querySelector('.dxfv-download'),
-            textBtn: root.querySelector('[data-act="text"]'),
+            wrap: root.querySelector('.dxfv-canvas-wrap'),
+            fullBtn: root.querySelector('.dxfv-full'),
+            zoomOut: root.querySelector('.dxfv-zoom'),
+            zoomRange: root.querySelector('.dxfv-zoom-range'),
+            textChk: root.querySelector('.dxfv-text-chk'),
             stats: root.querySelector('.dxfv-stats'),
             cursor: root.querySelector('.dxfv-cursor'),
             msg: root.querySelector('.dxfv-msg'),
@@ -68,18 +98,33 @@
         v.cv = root.querySelector('canvas');
         v.ctx = v.cv.getContext('2d');
 
-        root.querySelector('.dxfv-bar').addEventListener('click', function (ev) {
-            var act = ev.target.getAttribute('data-act');
+        root.addEventListener('click', function (ev) {
+            var btn = ev.target.closest('[data-act]');
+            if (!btn) return;
+            var act = btn.getAttribute('data-act');
             if (act === 'fit') fit();
             else if (act === 'in') zoomStep(1.25);
             else if (act === 'out') zoomStep(0.8);
-            else if (act === 'text') toggleText();
+            else if (act === 'full') toggleFull();
+            else if (act === 'all') setAllLayers(false);
+            else if (act === 'none') setAllLayers(true);
         });
         root.querySelector('.dxfv-x').addEventListener('click', close);
         root.addEventListener('mousedown', function (ev) { if (ev.target === root) close(); });
 
+        v.els.textChk.addEventListener('change', function () {
+            v.showText = v.els.textChk.checked;
+            draw();
+        });
+
+        v.els.zoomRange.addEventListener('input', function () {
+            if (!v.data || !v.w) return;
+            var target = v.fitScale * rangeToFactor(parseFloat(v.els.zoomRange.value));
+            zoomAt(v.w / 2, v.h / 2, target / v.scale, true);
+        });
+
         v.els.legend.addEventListener('click', function (ev) {
-            var chip = ev.target.closest('.dxfv-chip');
+            var chip = ev.target.closest('.dxfv-layer');
             if (chip) toggleLayer(parseInt(chip.getAttribute('data-layer'), 10));
         });
 
@@ -117,9 +162,22 @@
             resize();
             draw();
         });
+
+        ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (evt) {
+            document.addEventListener(evt, function () {
+                if (!v.root.classList.contains('is-open')) return;
+                v.els.fullBtn.textContent = fullEl() ? 'Exit' : 'Full';
+                resize();
+                fit();
+            });
+        });
     }
 
-    function onKey(ev) { if (ev.key === 'Escape') close(); }
+    function onKey(ev) {
+        if (ev.key !== 'Escape') return;
+        if (fullEl()) return;
+        close();
+    }
 
     function open(opts) {
         if (typeof opts === 'string') opts = { url: opts };
@@ -129,6 +187,8 @@
         v.data = null;
         v.byLayer = null;
         v.hidden = {};
+        v.showText = true;
+        v.els.textChk.checked = true;
         v.els.name.textContent = opts.name || '';
         v.els.legend.innerHTML = '';
         v.els.stats.textContent = '';
@@ -172,11 +232,22 @@
 
     function close() {
         if (!v.root) return;
+        if (fullEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
         v.root.classList.remove('is-open');
         document.body.classList.remove('dxfv-lock');
         document.removeEventListener('keydown', onKey);
         v.data = null;
         v.byLayer = null;
+    }
+
+    function toggleFull() {
+        var el = v.els.wrap;
+        if (fullEl()) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else {
+            var req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) req.call(el);
+        }
     }
 
     function resize() {
@@ -197,38 +268,63 @@
         var s = Math.min((v.w - 48) / bw, (v.h - 48) / bh);
         if (!isFinite(s) || s <= 0) s = 1;
         v.scale = s;
+        v.fitScale = s;
         v.ox = v.w / 2 - (b[0] + b[2]) / 2 * s;
         v.oy = v.h / 2 + (b[1] + b[3]) / 2 * s;
+        syncZoom();
         draw();
     }
 
-    function zoomAt(px, py, f) {
-        if (!v.data) return;
+    function rangeToFactor(val) { return Math.pow(10, (val - 50) / 50); }
+
+    function factorToRange(f) {
+        var val = 50 + 50 * Math.log(f) / Math.LN10;
+        return Math.max(0, Math.min(100, val));
+    }
+
+    function syncZoom(skipRange) {
+        var f = v.fitScale > 0 ? v.scale / v.fitScale : 1;
+        v.els.zoomOut.textContent = Math.round(f * 100) + '%';
+        if (!skipRange) v.els.zoomRange.value = factorToRange(f).toFixed(1);
+    }
+
+    function zoomAt(px, py, f, fromRange) {
+        if (!v.data || !isFinite(f) || f <= 0) return;
         v.ox = px - (px - v.ox) * f;
         v.oy = py - (py - v.oy) * f;
         v.scale *= f;
+        syncZoom(fromRange);
         draw();
     }
 
     function zoomStep(f) { zoomAt(v.w / 2, v.h / 2, f); }
 
-    function toggleText() {
-        v.showText = !v.showText;
-        v.els.textBtn.textContent = v.showText ? 'Hide text' : 'Show text';
+    function toggleLayer(i) {
+        v.hidden[i] = !v.hidden[i];
+        syncLayers();
         draw();
     }
 
-    function toggleLayer(i) {
-        v.hidden[i] = !v.hidden[i];
-        v.els.legend.querySelector('.dxfv-chip[data-layer="' + i + '"]').classList.toggle('off', !!v.hidden[i]);
+    function setAllLayers(hide) {
+        if (!v.data) return;
+        v.data.layers.forEach(function (_, i) { v.hidden[i] = hide; });
+        syncLayers();
         draw();
+    }
+
+    function syncLayers() {
+        var chips = v.els.legend.querySelectorAll('.dxfv-layer');
+        for (var i = 0; i < chips.length; i++) {
+            var idx = parseInt(chips[i].getAttribute('data-layer'), 10);
+            chips[i].classList.toggle('off', !!v.hidden[idx]);
+        }
     }
 
     function legend() {
         v.els.legend.innerHTML = v.data.layers.map(function (name, i) {
-            return '<button type="button" class="dxfv-chip" data-layer="' + i + '">' +
+            return '<button type="button" class="dxfv-layer" data-layer="' + i + '">' +
                 '<span class="dxfv-dot" style="background:' + color(i) + '"></span>' +
-                esc(name || '0') + '</button>';
+                '<span class="dxfv-layer-name">' + esc(name || '0') + '</span></button>';
         }).join('');
     }
 
@@ -251,7 +347,7 @@
     function draw() {
         var ctx = v.ctx;
         if (!ctx) return;
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, v.w, v.h);
         if (!v.data) return;
 
